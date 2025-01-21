@@ -192,6 +192,9 @@ local function endwise(bufnr)
     for _, match, metadata in query:iter_matches(root, bufnr, range[1], range[3] + 1, query_opts) do
         local indent_node, cursor_node, endable_node
         for id, node in pairs(match) do
+            if vim.fn.has('nvim-0.11') == 1 then
+                node = node[#node]
+            end
             if query.captures[id] == 'indent' then
                 indent_node = node
             elseif query.captures[id] == 'cursor' then
