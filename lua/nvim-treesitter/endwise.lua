@@ -1,12 +1,58 @@
 local parsers = require('nvim-treesitter.parsers')
-local queries = require('nvim-treesitter.query')
-local ts_utils = require('nvim-treesitter.ts_utils')
+local ts = vim.treesitter
 
 local M = {}
 local indent_regex = vim.regex('\\v^\\s*\\zs\\S')
 local tracking = {}
 
 local query_opts = vim.fn.has "nvim-0.10" == 1 and { force = true, all = false } or true
+
+---@param lang string
+---@param query_name string
+---@return boolean
+local function has_query_files(lang, query_name)
+    return #ts.query.get_files(lang, query_name) > 0
+end
+
+local function get_buf_lang(bufnr)
+    local ft = vim.bo[bufnr].filetype
+    if not ft or ft == '' then
+        return nil
+    end
+    return ts.language.get_lang(ft)
+end
+
+---@param lang string
+---@return boolean
+local function is_supported(lang)
+    local seen = {}
+    local function has_nested_endwise_language(nested_lang)
+        if not parsers.has_parser(nested_lang) then
+            return false
+        end
+        -- Has query file <nested_lang>/endwise.scm
+        if has_query_files(nested_lang, "endwise") then
+            return true
+        end
+        if seen[nested_lang] then
+            return false
+        end
+        seen[nested_lang] = true
+
+        if has_query_files(nested_lang, "injections") then
+            local query = ts.query.get(nested_lang, "injections")
+            for _, capture in ipairs(query.info.captures) do
+                if capture == "language" or has_nested_endwise_language(capture) then
+                    return true
+                end
+            end
+        end
+
+        return false
+    end
+
+    return has_nested_endwise_language(lang)
+end
 
 local function tabstr()
     if vim.bo.expandtab then
@@ -103,7 +149,7 @@ local function add_end_node(indent_node_range, endable_node_range, end_text, shi
 end
 
 local function endwise(bufnr)
-    local lang = parsers.get_buf_lang(bufnr)
+    local lang = get_buf_lang(bufnr)
     if not lang then
         return
     end
@@ -117,18 +163,26 @@ local function endwise(bufnr)
     row = row - 1
     col = col - 1
 
-    local lang_tree = parsers.get_parser(bufnr):language_for_range({ row, col, row, col })
+    ---@type vim.treesitter.LanguageTree
+    local lang_tree = ts.get_parser(bufnr):language_for_range({ row, col, row, col })
     lang = lang_tree:lang()
     if not lang then
         return
     end
 
-    local root = ts_utils.get_root_for_position(row, col, lang_tree)
+    -- local root = ts_utils.get_root_for_position(row, col, lang_tree)
+    -- if not root then
+    --     return
+    -- end
+
+    ---@type TSNode
+    local node = ts.get_node { bufnr = bufnr, pos = { row, col }, lang = lang }
+    local root = node and node:root()
     if not root then
         return
     end
 
-    local query = queries.get_query(lang, 'endwise')
+    local query = ts.query.get(lang, 'endwise')
     if not query then
         return
     end
@@ -197,14 +251,17 @@ vim.on_key(function(key)
     vim.schedule_wrap(function()
         local bufnr = vim.fn.bufnr()
         if not tracking[bufnr] then return end
-        vim.cmd('doautocmd User PreNvimTreesitterEndwiseCR') -- Not currently used
+        vim.cmd('doautocmd User PreNvimTreesitterEndwiseCR')  -- Not currently used
         endwise(bufnr)
         vim.cmd('doautocmd User PostNvimTreesitterEndwiseCR') -- Used in tests to know when to exit Neovim
     end)()
 end, nil)
 
-function M.attach(bufnr)
-    tracking[bufnr] = true
+function M.attach(bufnr, lang)
+    lang = lang or get_buf_lang(bufnr)
+    if is_supported(lang) then
+        tracking[bufnr] = true
+    end
 end
 
 function M.detach(bufnr)
