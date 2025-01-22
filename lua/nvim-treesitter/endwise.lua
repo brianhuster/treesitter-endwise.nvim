@@ -14,6 +14,8 @@ local function has_query_files(lang, query_name)
     return #ts.query.get_files(lang, query_name) > 0
 end
 
+---@param bufnr number
+---@return string|nil
 local function get_buf_lang(bufnr)
     local ft = vim.bo[bufnr].filetype
     if not ft or ft == '' then
@@ -62,6 +64,8 @@ local function tabstr()
     end
 end
 
+---@param range number[]
+---@return string
 local function text_for_range(range)
     local srow, scol, erow, ecol = unpack(range)
     if srow == erow then
@@ -148,7 +152,7 @@ local function add_end_node(indent_node_range, endable_node_range, end_text, shi
     vim.fn.cursor(crow, #cursor_indentation + 1)
 end
 
-local function endwise(bufnr)
+function M.endwise(bufnr)
     local lang = get_buf_lang(bufnr)
     if not lang then
         return
@@ -175,7 +179,8 @@ local function endwise(bufnr)
 
     --- This work like `require 'nvim-treesitter.ts_utils'.get_root_for_position`
     ---@type TSNode
-    local node = ts.get_node { bufnr = bufnr, pos = { row, col }, lang = lang }
+    local node = ts.get_node { bufnr = bufnr, pos = { row, col }, lang = lang, ignore_injections = false }
+    vim.print(node)
     local root = node and node:root()
     if not root then
         return
@@ -250,13 +255,13 @@ end, query_opts)
 vim.on_key(function(key)
     if key ~= "\r" then return end
     if vim.api.nvim_get_mode().mode ~= 'i' then return end
-    vim.schedule_wrap(function()
+    vim.schedule(function()
         local bufnr = vim.fn.bufnr()
         if not tracking[bufnr] then return end
         vim.cmd('doautocmd User PreNvimTreesitterEndwiseCR')  -- Not currently used
-        endwise(bufnr)
+        M.endwise(bufnr)
         vim.cmd('doautocmd User PostNvimTreesitterEndwiseCR') -- Used in tests to know when to exit Neovim
-    end)()
+    end)
 end, nil)
 
 function M.attach(bufnr, lang)

@@ -1,1 +1,1 @@
-*.rb linguist-documentation
+./tests/** linguist-documentation
