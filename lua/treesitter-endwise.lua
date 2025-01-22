@@ -1,1 +1,1 @@
-return require 'nvim-treesitter'.endwise
+return require 'nvim-treesitter.endwise'
