@@ -4,6 +4,9 @@ ENDWISE_DIR = File.expand_path(File.join(__dir__, ".."))
 BASE_INIT_LUA = File.join(ENDWISE_DIR, "tests", "init.lua")
 CURSOR = "█"
 
+# global variable
+$ok = true
+
 system('cd .. && git clone --depth=1 https://github.com/nvim-treesitter/nvim-treesitter.git && git pull')
 
 def config(opts)
@@ -41,7 +44,7 @@ def test(description, testcase)
     input = input.gsub(CURSOR, "")
     File.write(input_fname, input)
     command = @config[:command]
-    system("nvim", "-u", BASE_INIT_LUA, "+#{crow+1}", "-S", overrides, input_fname, "-c", "lua #{command}(#{ccol-1})")
+    system("nvim", "--headless", "-u", BASE_INIT_LUA, "+#{crow+1}", "-S", overrides, input_fname, "-c", "lua #{command}(#{ccol-1})")
     got = File.read(input_fname)
     if got != expected
       puts ""
@@ -50,6 +53,7 @@ def test(description, testcase)
       puts "\e[34mGot\e[0m:", got.gsub(/\t/, "<tab>")
       puts "\e[34mExpected:\e[0m", expected.gsub(/\t/, "<tab>")
       puts "\e[31m======\e[0m"
+      $ok = false
     else
       print "\e[32m.\e[0m"
     end
@@ -62,3 +66,7 @@ Dir.glob("#{ENDWISE_DIR}/tests/endwise/*.rb").each do |fname|
 end
 
 puts ""
+
+if not $ok
+  exit 1
+end

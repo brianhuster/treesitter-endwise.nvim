@@ -1,0 +1,29 @@
+name: tests
+
+on:
+  push:
+    branches:
+      - '*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-sources:
+    name: CI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Neovim
+        run: |
+          sudo snap install nvim --edge --classic
+          nvim --version
+
+      - name: Install ruby
+        run: |
+          sudo apt install ruby
+          ruby --version
+
+      - name: Run test
+        run: |
+          make test

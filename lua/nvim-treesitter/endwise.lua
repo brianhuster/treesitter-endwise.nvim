@@ -1,4 +1,3 @@
-local parsers = require('nvim-treesitter.parsers')
 local ts = vim.treesitter
 
 local M = {}
@@ -12,6 +11,12 @@ local query_opts = vim.fn.has "nvim-0.10" == 1 and { force = true } or true
 ---@return boolean
 local function has_query_files(lang, query_name)
     return #ts.query.get_files(lang, query_name) > 0
+end
+
+---@param lang string
+---@return boolean
+local function has_parser(lang)
+    return #vim.api.nvim_get_runtime_file("parser/" .. lang .. ".*", false) > 0
 end
 
 ---@param bufnr number
@@ -29,7 +34,7 @@ end
 local function is_supported(lang)
     local seen = {}
     local function has_nested_endwise_language(nested_lang)
-        if not parsers.has_parser(nested_lang) then
+        if not has_parser(nested_lang) then
             return false
         end
         -- Has query file <nested_lang>/endwise.scm
@@ -158,7 +163,7 @@ function M.endwise(bufnr)
         return
     end
 
-    if not parsers.has_parser(lang) then
+    if not has_parser(lang) then
         return
     end
 
@@ -180,7 +185,6 @@ function M.endwise(bufnr)
     --- This work like `require 'nvim-treesitter.ts_utils'.get_root_for_position`
     ---@type TSNode
     local node = ts.get_node { bufnr = bufnr, pos = { row, col }, lang = lang, ignore_injections = false }
-    vim.print(node)
     local root = node and node:root()
     if not root then
         return

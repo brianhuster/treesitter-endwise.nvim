@@ -1,6 +1,7 @@
 vim.opt.runtimepath:append('.')
 vim.cmd.runtime('plugin/nvim-treesitter-endwise.lua')
 vim.opt.runtimepath:append('../nvim-treesitter')
+vim.cmd.runtime('plugin/nvim-treesitter.lua')
 vim.opt.showmode = false
 
 local function feedkeys(input)
@@ -12,11 +13,7 @@ function ExecuteCR(n)
     vim.schedule(function()
         vim.api.nvim_create_autocmd('User', {
             pattern = 'PostNvimTreesitterEndwiseCR',
-            callback = function()
-                vim.defer_fn(function()
-                    vim.cmd('silent wq')
-                end, 1000)
-            end
+            command = 'silent wq'
         })
         feedkeys(string.rep('l', n) .. 'a<CR>')
     end)
@@ -42,3 +39,15 @@ function ExecuteCRTwiceAndUndo(n)
         feedkeys(string.rep('l', n) .. 'a<CR>')
     end)
 end
+
+vim.api.nvim_create_autocmd('FileType', {
+    pattern = '*',
+    callback = function()
+        local ok, _, _ = pcall(vim.treesitter.start)
+        if not ok then
+            local lang = vim.treesitter.language.get_lang(vim.bo.ft)
+            vim.cmd.TSInstallSync(lang)
+            vim.treesitter.start()
+        end
+    end
+})
