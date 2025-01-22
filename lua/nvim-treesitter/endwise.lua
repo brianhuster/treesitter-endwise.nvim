@@ -5,7 +5,7 @@ local M = {}
 local indent_regex = vim.regex('\\v^\\s*\\zs\\S')
 local tracking = {}
 
-local query_opts = vim.fn.has "nvim-0.10" == 1 and { force = true, all = false } or true
+local query_opts = vim.fn.has "nvim-0.10" == 1 and { force = true } or true
 
 ---@param lang string
 ---@param query_name string
@@ -160,6 +160,9 @@ local function endwise(bufnr)
 
     -- Search up the first the closest non-whitespace text before the cursor
     local row, col = unpack(vim.fn.searchpos('\\S', 'nbW'))
+    if row < 1 or col < 1 then
+        return
+    end
     row = row - 1
     col = col - 1
 
@@ -170,11 +173,7 @@ local function endwise(bufnr)
         return
     end
 
-    -- local root = ts_utils.get_root_for_position(row, col, lang_tree)
-    -- if not root then
-    --     return
-    -- end
-
+    --- This work like `require 'nvim-treesitter.ts_utils'.get_root_for_position`
     ---@type TSNode
     local node = ts.get_node { bufnr = bufnr, pos = { row, col }, lang = lang }
     local root = node and node:root()
