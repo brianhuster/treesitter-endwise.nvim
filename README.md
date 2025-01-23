@@ -14,17 +14,15 @@ This is a simple plugin that helps to end certain structures automatically. In R
 
 **Supported Languages**: *Ruby*, *Lua*, *Vimscript*, *Bash*, *Elixir*, *Fish*, *Julia*
 
-This plugin requires [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) to work. You don't need to worry about this if you're using a plugin manager that supports [pkg.json](https://github.com/neovim/packspec) such as [lazy.nvim](https://github.com/folke/lazy.nvim)
-
 # Quick Start
 
 You can install this plugin using your favorite plugin manager or `packages` feature in Neovim.
 
-After installing the plugin, make sure that you install the parsers for the languages you want to use
+After installing the plugin, make sure that you install the Treesitter parsers for the languages. For example, if you use [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter):
 ```vim
 :TSInstall ruby lua vim bash elixir fish julia
 ```
-Enable Treesitter highlighting for the filetypes you want to use this plugin with.
+Also make sure that you have enabled Treesitter highlighting for the filetypes you want to use this plugin with.
 
 ```lua
 vim.api.nvim_create_autocmd('FileType', {

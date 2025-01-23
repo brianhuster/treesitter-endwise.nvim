@@ -16,7 +16,10 @@ end
 ---@param lang string
 ---@return boolean
 local function has_parser(lang)
-    return #vim.api.nvim_get_runtime_file("parser/" .. lang .. ".*", false) > 0
+    local has, _ = ts.get_parser(nil, lang, {
+        error = false -- This option will become default and removed in Nvim 0.12
+    })
+    return not not has
 end
 
 ---@param bufnr number
