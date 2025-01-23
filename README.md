@@ -18,6 +18,8 @@ This plugin requires [nvim-treesitter](https://github.com/nvim-treesitter/nvim-t
 
 # Quick Start
 
+You can install this plugin using your favorite plugin manager or `packages` feature in Neovim.
+
 After installing the plugin, make sure that you install the parsers for the languages you want to use
 ```vim
 :TSInstall ruby lua vim bash elixir fish julia
@@ -31,6 +33,16 @@ vim.api.nvim_create_autocmd('FileType', {
         vim.treesitter.start()
     end
 })
+```
+
+If you want to enable this plugin for some filetypes only, you can use the following code:
+```lua
+vim.g.treesitter_endwise_filetypes = {'ruby', 'lua', 'vim', 'bash', 'elixir', 'fish', 'julia'}
+```
+
+Or to disable it for some filetypes:
+```lua
+vim.g.treesitter_endwise_filetypes_disable = {'fish'}
 ```
 
 # Additional Language Support
