@@ -44,7 +44,7 @@ def test(description, testcase)
     input = input.gsub(CURSOR, "")
     File.write(input_fname, input)
     command = @config[:command]
-    system("nvim", "--headless", "-u", BASE_INIT_LUA, "+#{crow+1}", "-S", overrides, input_fname, "-c", "lua #{command}(#{ccol-1})")
+    system("nvim", "--headless", "--clean", "-u", BASE_INIT_LUA, "+#{crow+1}", "-S", overrides, input_fname, "-c", "lua #{command}(#{ccol-1})")
     got = File.read(input_fname)
     if got != expected
       puts ""
