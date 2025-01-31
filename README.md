@@ -18,6 +18,9 @@ This is a simple plugin that helps to end certain structures automatically. In R
 
 You can install this plugin using your favorite plugin manager or `packages` feature in Neovim.
 
+> [!NOTE]
+> This plugin does **not** support lazy loading.
+
 After installing the plugin, make sure that you install the Treesitter parsers for the languages. For example, if you use [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter):
 ```vim
 :TSInstall ruby lua vim bash elixir fish julia
