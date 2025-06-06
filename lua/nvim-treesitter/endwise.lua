@@ -16,10 +16,8 @@ end
 ---@param lang string
 ---@return boolean
 local function has_parser(lang)
-    local has, _ = ts.get_parser(nil, lang, {
-        error = false -- This option will become default and removed in Nvim 0.12
-    })
-    return not not has
+    local has, _ = pcall(ts.get_parser, nil, lang)
+    return has
 end
 
 ---@param bufnr number
